@@ -1,0 +1,18 @@
+{
+  "name": "mern-revamp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.2.0",
+    "express-validator": "^7.2.1"
+  }
+}
