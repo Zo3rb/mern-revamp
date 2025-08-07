@@ -6,9 +6,9 @@ import asyncHandler from "express-async-handler";
 export const registerUser = asyncHandler(async (req, res) => {
   // Registration logic here
   res.status(201).json({
-    success: true,
+    success: "true",
     message: "User registered successfully",
-    data: null,
+    data: "null",
   });
 });
 
@@ -18,9 +18,9 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
   // Login logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: "User logged in successfully",
-    data: null,
+    data: "null",
   });
 });
 
@@ -30,9 +30,9 @@ export const loginUser = asyncHandler(async (req, res) => {
 export const getUserProfile = asyncHandler(async (req, res) => {
   // Get current user profile logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: "Fetched current user profile",
-    data: null,
+    data: "null",
   });
 });
 
@@ -42,9 +42,9 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 export const updateUserProfile = asyncHandler(async (req, res) => {
   // Update current user profile logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: "Updated current user profile",
-    data: null,
+    data: "null",
   });
 });
 
@@ -54,9 +54,9 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 export const getAllUsers = asyncHandler(async (req, res) => {
   // Get all users logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: "Fetched all users",
-    data: null,
+    data: "null",
   });
 });
 
@@ -66,9 +66,9 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 export const getUserById = asyncHandler(async (req, res) => {
   // Get user by ID logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: `Fetched user with id ${req.params.id}`,
-    data: null,
+    data: "null",
   });
 });
 
@@ -78,9 +78,9 @@ export const getUserById = asyncHandler(async (req, res) => {
 export const updateUserById = asyncHandler(async (req, res) => {
   // Update user by ID logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: `Updated user with id ${req.params.id}`,
-    data: null,
+    data: "null",
   });
 });
 
@@ -90,8 +90,8 @@ export const updateUserById = asyncHandler(async (req, res) => {
 export const deleteUser = asyncHandler(async (req, res) => {
   // Delete user logic here
   res.status(200).json({
-    success: true,
+    success: "true",
     message: `Deleted user with id ${req.params.id}`,
-    data: null,
+    data: "null",
   });
 });
