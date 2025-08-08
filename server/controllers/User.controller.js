@@ -109,7 +109,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 // @desc    Logout user
 // @route   POST /api/users/logout
-// @access  Public
+// @access  Private
 export const logoutUser = asyncHandler(async (req, res) => {
   // Log logout action (if user info is available in req.user, use it; otherwise, log as anonymous)
   actionLogger.info({

@@ -11,6 +11,8 @@ import {
   updateUserById,
   deleteUser,
 } from "../controllers/User.controller.js";
+import { protect } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import {
   registerValidator,
   loginValidator,
@@ -21,7 +23,7 @@ const router = express.Router();
 // Public routes
 router.post("/", registerValidator, registerUser); // POST /api/users      (register)
 router.post("/login", loginValidator, loginUser); // POST /api/users/login
-router.post("/logout", logoutUser); // POST /api/users/logout
+router.post("/logout", protect, logoutUser); // POST /api/users/logout
 
 // Authenticated user routes
 router.get("/me", getUserProfile); // GET  /api/users/me   (current user)
