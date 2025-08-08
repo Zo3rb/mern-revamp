@@ -36,6 +36,12 @@ app.get("/api/ping", (req, res) => {
 // API Centeral Router
 app.use("/api", apiRoutes);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve uploads folder statically
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Serve React static build in production
 if (appConfig.NODE_ENV === "production") {
   const __filename = fileURLToPath(import.meta.url);

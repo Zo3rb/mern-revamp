@@ -132,11 +132,29 @@ export const logoutUser = asyncHandler(async (req, res) => {
 // @route   GET /api/users/me
 // @access  Private
 export const getUserProfile = asyncHandler(async (req, res) => {
-  // Get current user profile logic here
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
   res.status(200).json({
-    success: "true",
+    success: true,
     message: "Fetched current user profile",
-    data: "null",
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      isVerified: user.isVerified,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
   });
 });
 
@@ -144,11 +162,53 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PATCH /api/users/me
 // @access  Private
 export const updateUserProfile = asyncHandler(async (req, res) => {
-  // Update current user profile logic here
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  // Update fields if provided
+  if (req.body.username) user.username = req.body.username;
+  if (req.body.email) user.email = req.body.email;
+
+  // Handle avatar upload
+  if (req.file) {
+    user.avatar = `/uploads/avatars/${req.file.filename}`;
+  }
+
+  await user.save();
+
+  // Log action
+  actionLogger.info({
+    user: user._id,
+    action: "update_profile",
+    impact: `User '${user.username}' updated profile${
+      req.file ? " and avatar" : ""
+    }`,
+    details: {
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+    },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
-    message: "Updated current user profile",
-    data: "null",
+    success: true,
+    message: "Profile updated successfully",
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      isVerified: user.isVerified,
+      role: user.role,
+    },
   });
 });
 
