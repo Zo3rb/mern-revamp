@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 // Locals
 import routeLoggingMiddleware from "./middleware/routeLogger.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import connectDB from "./config/db.js";
 import apiRoutes from "./routes/api.js";
 
 const app = express();
@@ -70,6 +71,8 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Initiate the Server
-app.listen(appConfig.PORT, () => {
-  console.log(`[SERVER]: Application is running on PORT: ${appConfig.PORT}`);
+connectDB().then(() => {
+  app.listen(appConfig.PORT, () => {
+    console.log(`[SERVER]: Application is running on PORT: ${appConfig.PORT}`);
+  });
 });
