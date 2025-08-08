@@ -1,7 +1,9 @@
 import express from "express";
+
 import {
   registerUser,
   loginUser,
+  logoutUser,
   getUserProfile,
   updateUserProfile,
   getAllUsers,
@@ -9,12 +11,17 @@ import {
   updateUserById,
   deleteUser,
 } from "../controllers/User.controller.js";
+import {
+  registerValidator,
+  loginValidator,
+} from "../validators/User.validator.js";
 
 const router = express.Router();
 
 // Public routes
-router.post("/", registerUser); // POST /api/users      (register)
-router.post("/login", loginUser); // POST /api/users/login
+router.post("/", registerValidator, registerUser); // POST /api/users      (register)
+router.post("/login", loginValidator, loginUser); // POST /api/users/login
+router.post("/logout", logoutUser); // POST /api/users/logout
 
 // Authenticated user routes
 router.get("/me", getUserProfile); // GET  /api/users/me   (current user)

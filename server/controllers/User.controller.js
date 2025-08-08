@@ -1,14 +1,61 @@
 import asyncHandler from "express-async-handler";
+import { validationResult } from "express-validator";
+
+import User from "../models/User.model.js";
+import {
+  generateToken,
+  setTokenCookie,
+  clearTokenCookie,
+} from "../utils/generateToken.js";
+import { actionLogger } from "../utils/logger.js";
 
 // @desc    Register new user
 // @route   POST /api/users
 // @access  Public
 export const registerUser = asyncHandler(async (req, res) => {
-  // Registration logic here
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      data: errors.array(),
+    });
+  }
+
+  const { username, email, password } = req.body;
+
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({
+      success: false,
+      message: "Email already registered",
+      data: null,
+    });
+  }
+
+  const user = await User.create({ username, email, password });
+  const token = generateToken(user._id);
+  setTokenCookie(res, token);
+
+  // Log registration action
+  actionLogger.info({
+    user: user._id,
+    action: "register",
+    impact: `User '${username}' registered with email '${email}'`,
+    details: { username, email },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(201).json({
-    success: "true",
+    success: true,
     message: "User registered successfully",
-    data: "null",
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isVerified: user.isVerified,
+      role: user.role,
+    },
   });
 });
 
@@ -16,11 +63,68 @@ export const registerUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users/login
 // @access  Public
 export const loginUser = asyncHandler(async (req, res) => {
-  // Login logic here
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      data: errors.array(),
+    });
+  }
+
+  const { email, password } = req.body;
+  const user = await User.findOne({ email }).select("+password");
+  if (!user || !(await user.matchPassword(password))) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+      data: null,
+    });
+  }
+
+  const token = generateToken(user._id);
+  setTokenCookie(res, token);
+
+  // Log login action
+  actionLogger.info({
+    user: user._id,
+    action: "login",
+    impact: `User '${user.username}' logged in`,
+    details: { email },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
+    success: true,
     message: "User logged in successfully",
-    data: "null",
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isVerified: user.isVerified,
+      role: user.role,
+    },
+  });
+});
+
+// @desc    Logout user
+// @route   POST /api/users/logout
+// @access  Public
+export const logoutUser = asyncHandler(async (req, res) => {
+  // Log logout action (if user info is available in req.user, use it; otherwise, log as anonymous)
+  actionLogger.info({
+    user: req.user?._id || "anonymous",
+    action: "logout",
+    impact: `User logged out`,
+    details: {},
+    timestamp: new Date().toISOString(),
+  });
+
+  clearTokenCookie(res);
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+    data: null,
   });
 });
 
