@@ -8,6 +8,7 @@ import {
   clearTokenCookie,
 } from "../utils/generateToken.js";
 import { actionLogger } from "../utils/logger.js";
+import { sendMail } from "../utils/mail.js";
 
 // @desc    Register new user
 // @route   POST /api/users
@@ -36,6 +37,14 @@ export const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({ username, email, password });
   const token = generateToken(user._id);
   setTokenCookie(res, token);
+
+  // Sedning welcome mail
+  await sendMail({
+    to: user.email,
+    subject: "Welcome to MERN Revamp!",
+    template: "welcome",
+    context: { username: user.username },
+  });
 
   // Log registration action
   actionLogger.info({
