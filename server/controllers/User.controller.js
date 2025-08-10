@@ -212,6 +212,102 @@ export const resendVerificationOtp = asyncHandler(async (req, res) => {
     .json({ success: true, message: "Verification OTP resent", data: null });
 });
 
+// @desc    Request password reset (forgot password)
+// @route   POST /api/users/forgot-password
+// @access  Public
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  // Generate OTP and expiry for password reset
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpire = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  user.resetPasswordOtp = otp;
+  user.resetPasswordOtpExpireAt = otpExpire;
+  await user.save();
+
+  // Send reset email
+  await sendMail({
+    to: user.email,
+    subject: "Password Reset Request",
+    template: "reset-password",
+    context: { username: user.username, otp },
+  });
+
+  // Log action
+  actionLogger.info({
+    user: user._id,
+    action: "forgot_password",
+    impact: `Password reset OTP sent to '${user.email}'`,
+    details: { email: user.email },
+    timestamp: new Date().toISOString(),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset OTP sent to your email",
+    data: null,
+  });
+});
+
+// @desc    Reset password using OTP
+// @route   POST /api/users/reset-password
+// @access  Public
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  if (
+    !user.resetPasswordOtp ||
+    user.resetPasswordOtp !== otp ||
+    !user.resetPasswordOtpExpireAt ||
+    user.resetPasswordOtpExpireAt < new Date()
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or expired OTP",
+      data: null,
+    });
+  }
+
+  user.password = newPassword;
+  user.resetPasswordOtp = "";
+  user.resetPasswordOtpExpireAt = null;
+  await user.save();
+
+  // Log action
+  actionLogger.info({
+    user: user._id,
+    action: "reset_password",
+    impact: `User '${user.username}' reset their password`,
+    details: { email: user.email },
+    timestamp: new Date().toISOString(),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Password has been reset successfully",
+    data: null,
+  });
+});
+
 // @desc    Logout user
 // @route   POST /api/users/logout
 // @access  Private
@@ -267,7 +363,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PATCH /api/users/me
 // @access  Private
 export const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("+password");
 
   if (!user) {
     return res.status(404).json({
@@ -286,6 +382,19 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     user.avatar = `/uploads/avatars/${req.file.filename}`;
   }
 
+  // Handle password change
+  if (req.body.currentPassword && req.body.newPassword) {
+    const isMatch = await user.matchPassword(req.body.currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+        data: null,
+      });
+    }
+    user.password = req.body.newPassword;
+  }
+
   await user.save();
 
   // Log action
@@ -294,7 +403,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     action: "update_profile",
     impact: `User '${user.username}' updated profile${
       req.file ? " and avatar" : ""
-    }`,
+    }${req.body.newPassword ? " and password" : ""}`,
     details: {
       username: user.username,
       email: user.email,

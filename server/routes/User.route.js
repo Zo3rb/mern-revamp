@@ -5,6 +5,8 @@ import {
   loginUser,
   verifyUserOtp,
   resendVerificationOtp,
+  forgotPassword,
+  resetPassword,
   logoutUser,
   getUserProfile,
   updateUserProfile,
@@ -21,6 +23,8 @@ import {
   loginValidator,
   verifyOtpValidator,
   resendOtpValidator,
+  forgotPasswordValidator,
+  resetPasswordValidator,
 } from "../validators/User.validator.js";
 
 const router = express.Router();
@@ -30,6 +34,8 @@ router.post("/", registerValidator, registerUser);
 router.post("/login", loginValidator, loginUser);
 router.post("/verify-otp", verifyOtpValidator, verifyUserOtp);
 router.post("/resend-otp", resendOtpValidator, resendVerificationOtp);
+router.post("/forgot-password", forgotPasswordValidator, forgotPassword);
+router.post("/reset-password", resetPasswordValidator, resetPassword);
 
 // Authenticated user routes
 router.post("/logout", protect, logoutUser);
