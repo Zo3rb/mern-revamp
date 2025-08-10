@@ -11,6 +11,7 @@ import routeLoggingMiddleware from "./middleware/routeLogger.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import connectDB from "./config/db.js";
 import apiRoutes from "./routes/api.js";
+import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(morgan("dev"));
 
 // Local Middleware
 app.use(routeLoggingMiddleware);
+app.use(generalLimiter);
 
 // Basic route for development
 app.get("/api/ping", (req, res) => {

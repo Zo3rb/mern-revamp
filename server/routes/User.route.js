@@ -1,5 +1,6 @@
 import express from "express";
 
+import { authLimiter } from "../middleware/rateLimiter.js";
 import {
   registerUser,
   loginUser,
@@ -30,12 +31,27 @@ import {
 const router = express.Router();
 
 // Public routes
-router.post("/", registerValidator, registerUser);
-router.post("/login", loginValidator, loginUser);
-router.post("/verify-otp", verifyOtpValidator, verifyUserOtp);
-router.post("/resend-otp", resendOtpValidator, resendVerificationOtp);
-router.post("/forgot-password", forgotPasswordValidator, forgotPassword);
-router.post("/reset-password", resetPasswordValidator, resetPassword);
+router.post("/", authLimiter, registerValidator, registerUser);
+router.post("/login", authLimiter, loginValidator, loginUser);
+router.post("/verify-otp", authLimiter, verifyOtpValidator, verifyUserOtp);
+router.post(
+  "/resend-otp",
+  authLimiter,
+  resendOtpValidator,
+  resendVerificationOtp
+);
+router.post(
+  "/forgot-password",
+  authLimiter,
+  forgotPasswordValidator,
+  forgotPassword
+);
+router.post(
+  "/reset-password",
+  authLimiter,
+  resetPasswordValidator,
+  resetPassword
+);
 
 // Authenticated user routes
 router.post("/logout", protect, logoutUser);
