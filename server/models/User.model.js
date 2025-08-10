@@ -53,6 +53,17 @@ const userSchema = new mongoose.Schema(
       maxlength: 200,
       default: "",
     },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
+    sessions: [
+      {
+        loginAt: { type: Date, default: Date.now },
+        ip: String,
+        userAgent: String,
+      },
+    ],
   },
   { timestamps: true }
 );

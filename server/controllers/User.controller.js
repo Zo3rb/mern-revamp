@@ -91,6 +91,16 @@ export const loginUser = asyncHandler(async (req, res) => {
     });
   }
 
+  // Update lastLogin and sessions
+  user.lastLogin = new Date();
+  user.sessions = user.sessions || [];
+  user.sessions.push({
+    loginAt: new Date(),
+    ip: req.ip || req.headers["x-forwarded-for"] || "",
+    userAgent: req.headers["user-agent"] || "",
+  });
+  await user.save();
+
   const token = generateToken(user._id);
   setTokenCookie(res, token);
 
