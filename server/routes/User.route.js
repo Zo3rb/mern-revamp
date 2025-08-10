@@ -3,6 +3,8 @@ import express from "express";
 import {
   registerUser,
   loginUser,
+  verifyUserOtp,
+  resendVerificationOtp,
   logoutUser,
   getUserProfile,
   updateUserProfile,
@@ -17,23 +19,27 @@ import { avatarUpload } from "../utils/multer.js";
 import {
   registerValidator,
   loginValidator,
+  verifyOtpValidator,
+  resendOtpValidator,
 } from "../validators/User.validator.js";
 
 const router = express.Router();
 
 // Public routes
-router.post("/", registerValidator, registerUser); // POST /api/users      (register)
-router.post("/login", loginValidator, loginUser); // POST /api/users/login
+router.post("/", registerValidator, registerUser);
+router.post("/login", loginValidator, loginUser);
+router.post("/verify-otp", verifyOtpValidator, verifyUserOtp);
+router.post("/resend-otp", resendOtpValidator, resendVerificationOtp);
 
 // Authenticated user routes
-router.post("/logout", protect, logoutUser); // POST /api/users/logout
-router.get("/me", protect, getUserProfile); // GET  /api/users/me   (current user)
-router.patch("/me", protect, avatarUpload.single("avatar"), updateUserProfile); // PATCH /api/users/me (update profile and/or avatar)
+router.post("/logout", protect, logoutUser);
+router.get("/me", protect, getUserProfile);
+router.patch("/me", protect, avatarUpload.single("avatar"), updateUserProfile);
 
 // Admin or extended routes
-router.get("/", getAllUsers); // GET  /api/users      (all users, admin)
-router.get("/:id", getUserById); // GET  /api/users/:id  (single user by id)
-router.patch("/:id", updateUserById); // PATCH /api/users/:id (update any user, admin)
-router.delete("/:id", deleteUser); // DELETE /api/users/:id
+router.get("/", getAllUsers);
+router.get("/:id", getUserById);
+router.patch("/:id", updateUserById);
+router.delete("/:id", deleteUser);
 
 export default router;

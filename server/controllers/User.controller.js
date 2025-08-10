@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { validationResult } from "express-validator";
+import crypto from "crypto";
 
 import User from "../models/User.model.js";
 import {
@@ -38,12 +39,21 @@ export const registerUser = asyncHandler(async (req, res) => {
   const token = generateToken(user._id);
   setTokenCookie(res, token);
 
+  // Generate OTP and expiry
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  const otpExpire = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+
+  user.verifyOtp = otp;
+  user.verifyOtpExpireAt = otpExpire;
+  user.isVerified = false;
+  await user.save();
+
   // Sedning welcome mail
   await sendMail({
     to: user.email,
-    subject: "Welcome to MERN Revamp!",
+    subject: "Welcome to MERN Revamp! Please verify your account",
     template: "welcome",
-    context: { username: user.username },
+    context: { username: user.username, otp },
   });
 
   // Log registration action
@@ -124,6 +134,82 @@ export const loginUser = asyncHandler(async (req, res) => {
       role: user.role,
     },
   });
+});
+
+// @desc    Verify User
+// @route   POST /api/users/verify-otp
+// @access  Public
+export const verifyUserOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res
+      .status(404)
+      .json({ success: false, message: "User not found", data: null });
+  }
+  if (user.isVerified) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User already verified", data: null });
+  }
+  if (
+    !user.verifyOtp ||
+    user.verifyOtp !== otp ||
+    !user.verifyOtpExpireAt ||
+    user.verifyOtpExpireAt < new Date()
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid or expired OTP", data: null });
+  }
+
+  user.isVerified = true;
+  user.verifyOtp = "";
+  user.verifyOtpExpireAt = null;
+  await user.save();
+
+  res
+    .status(200)
+    .json({ success: true, message: "User verified successfully", data: null });
+});
+
+// @desc    Request OTP for Email Verification
+// @route   POST /api/users/resend-otp
+// @access  Public
+export const resendVerificationOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res
+      .status(404)
+      .json({ success: false, message: "User not found", data: null });
+  }
+  if (user.isVerified) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User already verified", data: null });
+  }
+
+  // Generate new OTP and expiry
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  user.verifyOtp = otp;
+  user.verifyOtpExpireAt = otpExpire;
+  await user.save();
+
+  await sendMail({
+    to: user.email,
+    subject: "Your new verification code",
+    template: "welcome",
+    context: { username: user.username, otp },
+  });
+
+  res
+    .status(200)
+    .json({ success: true, message: "Verification OTP resent", data: null });
 });
 
 // @desc    Logout user

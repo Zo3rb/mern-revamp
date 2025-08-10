@@ -34,3 +34,12 @@ export const loginValidator = [
     .withMessage("Email is invalid"),
   body("password").notEmpty().withMessage("Password is required"),
 ];
+
+export const verifyOtpValidator = [
+  body("email").isEmail().withMessage("Valid email is required"),
+  body("otp").isLength({ min: 6, max: 6 }).withMessage("OTP must be 6 digits"),
+];
+
+export const resendOtpValidator = [
+  body("email").isEmail().withMessage("Valid email is required"),
+];
