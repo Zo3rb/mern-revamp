@@ -1,0 +1,416 @@
+{
+	"info": {
+		"_postman_id": "3246b689-4fd6-42a6-b246-3947e4d3acc3",
+		"name": "Revamp",
+		"description": "## **1\\. Registration & Verification**\n\n1. **Register User**\n    \n    - `POST /api/users`\n        \n    - Body: `{ \"username\": \"...\", \"email\": \"...\", \"password\": \"...\" }`\n        \n    - Expect: Success, welcome email with OTP sent.\n        \n2. **Verify User OTP**\n    \n    - `POST /api/users/verify-otp`\n        \n    - Body: `{ \"email\": \"...\", \"otp\": \"...\" }`\n        \n    - Use the OTP from the welcome email.\n        \n    - Expect: Success, user is now verified.\n        \n3. **Resend Verification OTP** (optional)\n    \n    - `POST /api/users/resend-otp`\n        \n    - Body: `{ \"email\": \"...\" }`\n        \n    - Expect: New OTP sent to email.\n        \n\n---\n\n## **2\\. Authentication**\n\n1. **Login**\n    \n    - `POST /api/users/login`\n        \n    - Body: `{ \"email\": \"...\", \"password\": \"...\" }`\n        \n    - Expect: Success, JWT cookie set.\n        \n2. **Logout**\n    \n    - `POST /api/users/logout`\n        \n    - (Requires authentication/JWT cookie)\n        \n    - Expect: Success, JWT cookie cleared.\n        \n\n---\n\n## **3\\. Password Management**\n\n1. **Forgot Password**\n    \n    - `POST /api/users/forgot-password`\n        \n    - Body: `{ \"email\": \"...\" }`\n        \n    - Expect: OTP sent to email.\n        \n2. **Reset Password**\n    \n    - `POST /api/users/reset-password`\n        \n    - Body: `{ \"email\": \"...\", \"otp\": \"...\", \"newPassword\": \"...\" }`\n        \n    - Use OTP from previous step.\n        \n    - Expect: Success, password updated.\n        \n\n---\n\n## **4\\. Profile Management**\n\n1. **Get Current User Profile**\n    \n    - `GET /api/users/me`\n        \n    - (Requires authentication/JWT cookie)\n        \n    - Expect: User profile data.\n        \n2. **Update Profile (including password and avatar)**\n    \n    - `PATCH /api/users/me`\n        \n    - (Requires authentication/JWT cookie)\n        \n    - Body: `{ \"username\": \"...\", \"email\": \"...\", \"currentPassword\": \"...\", \"newPassword\": \"...\" }`\n        \n    - Or use form-data for avatar upload.\n        \n    - Expect: Profile updated.\n        \n\n---\n\n## **5\\. Admin/Extended (if needed for your role)**\n\n1. **Get All Users**\n    \n    - `GET /api/users`\n        \n    - (If protected, use admin credentials)\n        \n2. **Get User by ID**\n    \n    - `GET /api/users/:id`\n        \n3. **Update User by ID**\n    \n    - `PATCH /api/users/:id`\n        \n4. **Delete User**\n    \n    - `DELETE /api/users/:id`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29987377"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "/",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"test Postman 3\",\n    \"email\": \"rokope6807@cotasen.com\",\n    \"password\": \"@Li123456\",\n    \"confirmPassword\": \"@Li123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\",\n    \"password\": \"@Aa123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\",\n    \"password\": \"@Li123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/me",
+					"request": {
+						"auth": {
+							"type": "inherit"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/me",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "new_username2",
+									"type": "text"
+								},
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/media/ali/E440D30240D2D9FE/card/1e084371-5ec2-46ed-9a3f-ee6f5da4f8d1.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/",
+					"request": {
+						"auth": {
+							"type": "inherit"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/:id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/:id",
+					"request": {
+						"auth": {
+							"type": "inherit"
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/:id",
+					"request": {
+						"auth": {
+							"type": "inherit"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/verify-otp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\",\n    \"otp\": \"924220\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/resend-otp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/resend-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"resend-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/forgot-password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/reset-password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rokope6807@cotasen.com\",\n    \"otp\": \"383037\",\n    \"newPassword\": \"@Aa123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "DOMAIN/",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"test Postman 3\",\n    \"email\": \"nocer40869@cotasen.com\",\n    \"password\": \"@Li123456\",\n    \"confirmPassword\": \"@Li123456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DOMAIN/api/ping",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"test Postman 3\",\n    \"email\": \"nocer40869@cotasen.com\",\n    \"password\": \"@Li123456\",\n    \"confirmPassword\": \"@Li123456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
