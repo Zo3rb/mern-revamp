@@ -1,28 +1,31 @@
-import { useState, useEffect } from "react";
-import { DatePicker } from "antd";
+import { RouterProvider, createBrowserRouter } from "react-router";
+import { Layout } from "antd";
+import AppBar from "./components/AppBar";
+import AppFooter from "./components/Footer";
+
+// Import your pages
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import Dashboard from "./pages/Dashboard";
+import NotFound from "./pages/NotFound";
+
+// Define routes
+const router = createBrowserRouter([
+  { path: "/", element: <Dashboard /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "*", element: <NotFound /> },
+]);
 
 function App() {
-  const [apiResponse, setApiResponse] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/ping")
-      .then((res) => res.json())
-      .then((data) => setApiResponse(data))
-      .catch((err) => setApiResponse({ success: false, message: err.message }));
-  }, []);
-
-  console.log(apiResponse);
   return (
-    <div style={{ padding: "2rem" }}>
-      <DatePicker />
-      <h1>React + Vite Home Page</h1>
-      <h2>API Test</h2>
-      {apiResponse ? (
-        <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
-      ) : (
-        <p>Loading API response...</p>
-      )}
-    </div>
+    <Layout style={{ minHeight: "100vh" }}>
+      <AppBar />
+      <Layout.Content style={{ padding: "24px" }}>
+        <RouterProvider router={router} />
+      </Layout.Content>
+      <AppFooter />
+    </Layout>
   );
 }
 
