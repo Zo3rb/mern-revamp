@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-import "./App.css";
+import { DatePicker } from "antd";
 
 function App() {
   const [apiResponse, setApiResponse] = useState(null);
@@ -15,6 +14,7 @@ function App() {
   console.log(apiResponse);
   return (
     <div style={{ padding: "2rem" }}>
+      <DatePicker />
       <h1>React + Vite Home Page</h1>
       <h2>API Test</h2>
       {apiResponse ? (
