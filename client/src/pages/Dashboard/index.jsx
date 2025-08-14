@@ -1,7 +1,11 @@
-import React from "react";
+import NotAuthenticated from "./NotAuthenticated";
 
 function Dashboard() {
-  return <div>Dashboard Page</div>;
+  return (
+    <>
+      <NotAuthenticated />
+    </>
+  );
 }
 
 export default Dashboard;

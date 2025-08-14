@@ -2,11 +2,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import "antd/dist/reset.css";
+import "@ant-design/v5-patch-for-react-19";
 
+import { AppContextProvider } from "./context/AppContext";
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  <AppContextProvider>
     <App />
-  </StrictMode>
+  </AppContextProvider>
 );
