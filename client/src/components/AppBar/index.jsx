@@ -54,6 +54,9 @@ function AppBar() {
           <Skeleton.Button active style={{ width: 100 }} />
         ) : user ? (
           <Space>
+            <Button icon={<UserOutlined />} onClick={() => navigate("/users")}>
+              Users
+            </Button>
             <Button
               icon={<UserOutlined />}
               type="primary"

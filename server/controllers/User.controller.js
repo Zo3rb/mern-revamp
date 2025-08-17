@@ -132,6 +132,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       email: user.email,
       isVerified: user.isVerified,
       role: user.role,
+      bio: user.bio,
     },
   });
 });
@@ -353,6 +354,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       isVerified: user.isVerified,
       role: user.role,
+      bio: user.bio,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     },
@@ -376,6 +378,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   // Update fields if provided
   if (req.body.username) user.username = req.body.username;
   if (req.body.email) user.email = req.body.email;
+  if (req.body.bio !== undefined) user.bio = req.body.bio;
 
   // Handle avatar upload
   if (req.file) {
@@ -422,6 +425,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       isVerified: user.isVerified,
       role: user.role,
+      bio: user.bio,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     },
@@ -505,7 +509,7 @@ export const getUserById = asyncHandler(async (req, res) => {
 
   // Find user and exclude sensitive fields
   const user = await User.findById(id).select(
-    "id username email avatar isVerified role createdAt updatedAt lastLogin"
+    "id username email avatar isVerified role bio createdAt updatedAt lastLogin"
   );
 
   if (!user) {
@@ -575,6 +579,7 @@ export const updateUserById = asyncHandler(async (req, res) => {
   if (typeof req.body.isVerified === "boolean") {
     user.isVerified = req.body.isVerified;
   }
+  if (req.body.bio !== undefined) user.bio = req.body.bio;
 
   // Handle avatar upload
   if (req.file) {
@@ -605,6 +610,7 @@ export const updateUserById = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       isVerified: user.isVerified,
       role: user.role,
+      bio: user.bio,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     },

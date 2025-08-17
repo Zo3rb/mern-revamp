@@ -31,6 +31,7 @@ function ProfileEdit() {
   const initialValues = {
     username: user.username,
     email: user.email,
+    bio: "",
     currentPassword: "",
     newPassword: "",
   };
@@ -49,6 +50,7 @@ function ProfileEdit() {
       const formData = new FormData();
       formData.append("username", values.username);
       formData.append("email", values.email);
+      formData.append("bio", values.bio);
       if (avatarFile) formData.append("avatar", avatarFile);
       if (values.currentPassword && values.newPassword) {
         formData.append("currentPassword", values.currentPassword);
@@ -105,6 +107,15 @@ function ProfileEdit() {
             />
           </Space>
         </Form.Item>
+
+        <Form.Item label="Bio" name="bio">
+          <Input.TextArea
+            rows={4}
+            maxLength={200}
+            placeholder="Tell us about yourself..."
+          />
+        </Form.Item>
+
         <Form.Item
           label="Username"
           name="username"

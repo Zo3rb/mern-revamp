@@ -29,6 +29,11 @@ function ProfileView() {
         style={{ marginBottom: 16 }}
       />
       <Title level={3}>{user.username}</Title>
+
+      <Paragraph>
+        <Text strong>Bio:</Text> {user.bio || "No bio provided."}
+      </Paragraph>
+
       <Paragraph>{user.email}</Paragraph>
       <Paragraph>
         Status:{" "}

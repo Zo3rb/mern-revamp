@@ -15,6 +15,9 @@ import ProfileView from "./pages/Profile/ProfileView";
 import ProfileEdit from "./pages/Profile/ProfileEdit";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import VerifyEmail from "./pages/Auth/VerifyEmail";
+import UsersList from "./pages/Users/UserList";
+import UserDetails from "./pages/Users/UserDetails";
+import UserEdit from "./pages/Users/UserEdit";
 
 // Define routes
 const router = createBrowserRouter([
@@ -30,6 +33,9 @@ const router = createBrowserRouter([
       { path: "verify-email", element: <VerifyEmail /> },
       { path: "profile", element: <ProfileView /> },
       { path: "profile/edit", element: <ProfileEdit /> },
+      { path: "users", element: <UsersList /> },
+      { path: "users/:id", element: <UserDetails /> },
+      { path: "users/:id/edit", element: <UserEdit /> },
       { path: "400", element: <BadRequest /> },
       { path: "500", element: <ServerError /> },
       { path: "404", element: <NotFound /> },
