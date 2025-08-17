@@ -1,13 +1,14 @@
+import React from "react";
 import { Result, Button } from "antd";
 import { useNavigate } from "react-router";
 
-function NotFound() {
+function ServerError() {
   const navigate = useNavigate();
   return (
     <Result
-      status="404"
-      title="404"
-      subTitle="Sorry, the page you visited does not exist."
+      status="500"
+      title="500"
+      subTitle="Sorry, something went wrong on our end."
       extra={
         <Button type="primary" onClick={() => navigate("/")}>
           Back Home
@@ -17,4 +18,4 @@ function NotFound() {
   );
 }
 
-export default NotFound;
+export default ServerError;
