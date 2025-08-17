@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { validationResult } from "express-validator";
-import crypto from "crypto";
+import mongoose from "mongoose";
 
 import User from "../models/User.model.js";
 import {
@@ -430,37 +430,184 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 
 // @desc    Get all users
 // @route   GET /api/users
-// @access  Private/Admin
+// @access  Private/User
 export const getAllUsers = asyncHandler(async (req, res) => {
-  // Get all users logic here
+  // Pagination
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  // Filtering (by username, email, role)
+  const filter = {};
+  if (req.query.username) {
+    filter.username = { $regex: req.query.username, $options: "i" };
+  }
+  if (req.query.email) {
+    filter.email = { $regex: req.query.email, $options: "i" };
+  }
+  if (req.query.role) {
+    filter.role = req.query.role;
+  }
+  if (req.query.isVerified) {
+    filter.isVerified = req.query.isVerified === "true";
+  }
+
+  // Total count for pagination
+  const total = await User.countDocuments(filter);
+
+  // Fetch users
+  const users = await User.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .select(
+      "id username email avatar isVerified role createdAt updatedAt lastLogin"
+    )
+    .sort({ createdAt: -1 });
+
+  // Logging
+  actionLogger.info({
+    user: req.user?._id || "anonymous",
+    action: "get_all_users",
+    impact: `Fetched ${users.length} users (page ${page}, limit ${limit})`,
+    details: { filter, page, limit, total },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
+    success: true,
     message: "Fetched all users",
-    data: "null",
+    data: {
+      users,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+      offset: skip,
+      count: users.length,
+    },
   });
 });
 
 // @desc    Get user by ID
 // @route   GET /api/users/:id
-// @access  Private/Admin
+// @access  Private/user
 export const getUserById = asyncHandler(async (req, res) => {
-  // Get user by ID logic here
+  const { id } = req.params;
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+      data: null,
+    });
+  }
+
+  // Find user and exclude sensitive fields
+  const user = await User.findById(id).select(
+    "id username email avatar isVerified role createdAt updatedAt lastLogin"
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  // Log action
+  actionLogger.info({
+    user: req.user?._id || "anonymous",
+    action: "get_user_by_id",
+    impact: `Fetched user with id ${id}`,
+    details: { id },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
-    message: `Fetched user with id ${req.params.id}`,
-    data: "null",
+    success: true,
+    message: `Fetched user with id ${id}`,
+    data: user,
   });
 });
 
 // @desc    Update user by ID
 // @route   PATCH /api/users/:id
-// @access  Private/Admin
+// @access  Private/Admin + Moderator
 export const updateUserById = asyncHandler(async (req, res) => {
-  // Update user by ID logic here
+  const { id } = req.params;
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+      data: null,
+    });
+  }
+
+  // Only verified admin/moderator can update
+  if (!req.user.isVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Only verified admin or moderator can update users",
+      data: null,
+    });
+  }
+
+  // Find user to update
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  // Update fields if provided
+  if (req.body.username) user.username = req.body.username;
+  if (req.body.email) user.email = req.body.email;
+  if (req.body.role && ["admin", "moderator", "user"].includes(req.body.role)) {
+    user.role = req.body.role;
+  }
+  if (typeof req.body.isVerified === "boolean") {
+    user.isVerified = req.body.isVerified;
+  }
+
+  // Handle avatar upload
+  if (req.file) {
+    user.avatar = `/api/uploads/avatars/${req.file.filename}`;
+  }
+
+  await user.save();
+
+  // Log action
+  actionLogger.info({
+    user: req.user._id,
+    action: "update_user_by_id",
+    impact: `User '${req.user.username}' updated user '${user.username}' (${id})`,
+    details: {
+      updatedFields: req.body,
+      avatar: user.avatar,
+    },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
-    message: `Updated user with id ${req.params.id}`,
-    data: "null",
+    success: true,
+    message: `User with id ${id} updated successfully`,
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      isVerified: user.isVerified,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
   });
 });
 
@@ -468,10 +615,64 @@ export const updateUserById = asyncHandler(async (req, res) => {
 // @route   DELETE /api/users/:id
 // @access  Private/Admin
 export const deleteUser = asyncHandler(async (req, res) => {
-  // Delete user logic here
+  const { id } = req.params;
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+      data: null,
+    });
+  }
+
+  // Only verified admin can delete users
+  if (req.user.role !== "admin" || !req.user.isVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Only verified admins can delete users",
+      data: null,
+    });
+  }
+
+  // Find user to delete
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+      data: null,
+    });
+  }
+
+  // Prevent deleting other admins unless verified
+  if (user.role === "admin" && !req.user.isVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Only verified admins can delete other admins",
+      data: null,
+    });
+  }
+
+  await user.deleteOne();
+
+  // Log action
+  actionLogger.info({
+    user: req.user._id,
+    action: "delete_user",
+    impact: `User '${req.user.username}' deleted user '${user.username}' (${id})`,
+    details: { deletedUserId: id, deletedUserRole: user.role },
+    timestamp: new Date().toISOString(),
+  });
+
   res.status(200).json({
-    success: "true",
-    message: `Deleted user with id ${req.params.id}`,
-    data: "null",
+    success: true,
+    message: `User with id ${id} deleted successfully`,
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
   });
 });

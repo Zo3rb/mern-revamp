@@ -59,9 +59,20 @@ router.get("/me", protect, getUserProfile);
 router.patch("/me", protect, avatarUpload.single("avatar"), updateUserProfile);
 
 // Admin or extended routes
-router.get("/", getAllUsers);
-router.get("/:id", getUserById);
-router.patch("/:id", updateUserById);
-router.delete("/:id", deleteUser);
+router.get("/", protect, getAllUsers);
+router.get("/:id", protect, getUserById);
+router.patch(
+  "/:id",
+  protect,
+  authorizeRoles("admin", "moderator"),
+  avatarUpload.single("avatar"),
+  updateUserById
+);
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("admin", "moderator"),
+  deleteUser
+);
 
 export default router;
