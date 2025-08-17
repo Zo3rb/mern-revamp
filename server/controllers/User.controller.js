@@ -379,7 +379,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 
   // Handle avatar upload
   if (req.file) {
-    user.avatar = `/uploads/avatars/${req.file.filename}`;
+    user.avatar = `/api/uploads/avatars/${req.file.filename}`;
   }
 
   // Handle password change
@@ -422,6 +422,8 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       isVerified: user.isVerified,
       role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     },
   });
 });

@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Form, Input, Button, Typography } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
+
+import { AppContext } from "../../../context/AppContext";
 
 const { Title } = Typography;
 
@@ -39,14 +42,29 @@ const validateConfirmPassword = ({ getFieldValue }) => ({
 function Register() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const { user, setUser } = useContext(AppContext);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.isVerified) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
     setServerError("");
     try {
       await axios.post("/api/users", values);
-      // Handle success (e.g., redirect, show notification)
+      const { data } = await axios.get("/api/users/me");
+      setUser(data.data); // Update context with user info
+      toast.success("Registration successful!");
+      navigate("/");
     } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
       setServerError(
         err.response?.data?.message || "Registration failed. Please try again."
       );

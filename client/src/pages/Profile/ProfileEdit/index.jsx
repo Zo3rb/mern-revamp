@@ -1,25 +1,74 @@
-import React, { useState } from "react";
-import { Form, Input, Button, Typography, Upload, Avatar } from "antd";
-import { UserOutlined, UploadOutlined } from "@ant-design/icons";
+import React, { useState, useContext, useEffect } from "react";
+import { Form, Input, Button, Typography, Upload, Avatar, Space } from "antd";
+import {
+  UserOutlined,
+  UploadOutlined,
+  MailOutlined,
+  LockOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+import { AppContext } from "../../../context/AppContext";
 
 const { Title } = Typography;
 
 function ProfileEdit() {
+  const { user, setUser } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null);
+
   const navigate = useNavigate();
 
-  // Dummy initial values
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const initialValues = {
-    username: "Guest",
-    email: "guest@example.com",
+    username: user.username,
+    email: user.email,
+    currentPassword: "",
+    newPassword: "",
+  };
+
+  const handleAvatarChange = (info) => {
+    const fileObj = info.fileList[0]?.originFileObj;
+    if (fileObj) {
+      setAvatarFile(fileObj);
+      setAvatarPreview(URL.createObjectURL(fileObj));
+    }
   };
 
   const onFinish = async (values) => {
     setLoading(true);
-    // TODO: Send PATCH request to /api/users/me
+    try {
+      const formData = new FormData();
+      formData.append("username", values.username);
+      formData.append("email", values.email);
+      if (avatarFile) formData.append("avatar", avatarFile);
+      if (values.currentPassword && values.newPassword) {
+        formData.append("currentPassword", values.currentPassword);
+        formData.append("newPassword", values.newPassword);
+      }
+
+      const res = await axios.patch("/api/users/me", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+      setUser(res.data.data);
+      toast.success("Profile updated successfully!");
+      navigate("/profile");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          "Profile update failed. Please try again."
+      );
+    }
     setLoading(false);
-    navigate("/profile");
   };
 
   return (
@@ -38,18 +87,24 @@ function ProfileEdit() {
       </Title>
       <Form layout="vertical" initialValues={initialValues} onFinish={onFinish}>
         <Form.Item label="Avatar">
-          <Upload
-            name="avatar"
-            listType="picture"
-            maxCount={1}
-            showUploadList={false}
-          >
-            <Button icon={<UploadOutlined />}>Upload Avatar</Button>
-          </Upload>
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Upload
+              name="avatar"
+              listType="picture"
+              maxCount={1}
+              showUploadList={false}
+              beforeUpload={() => false}
+              onChange={handleAvatarChange}
+            >
+              <Button icon={<UploadOutlined />}>Upload Avatar</Button>
+            </Upload>
+            <Avatar
+              size={64}
+              src={avatarPreview || null}
+              icon={<UserOutlined />}
+            />
+          </Space>
         </Form.Item>
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <Avatar size={64} icon={<UserOutlined />} />
-        </div>
         <Form.Item
           label="Username"
           name="username"
@@ -71,7 +126,53 @@ function ProfileEdit() {
             },
           ]}
         >
-          <Input />
+          <Input prefix={<MailOutlined />} />
+        </Form.Item>
+        <Form.Item
+          label="Current Password"
+          name="currentPassword"
+          rules={[
+            {
+              validator: (_, value) => {
+                // Only require newPassword if currentPassword is entered
+                if (value && !value.trim()) {
+                  return Promise.reject("Current password is required");
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
+        >
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Enter current password to change password"
+          />
+        </Form.Item>
+        <Form.Item
+          label="New Password"
+          name="newPassword"
+          dependencies={["currentPassword"]}
+          rules={[
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const currentPassword = getFieldValue("currentPassword");
+                if (currentPassword && !value) {
+                  return Promise.reject("New password is required");
+                }
+                if (value && value.length < 6) {
+                  return Promise.reject(
+                    "Password must be at least 6 characters"
+                  );
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+        >
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Enter new password"
+          />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={loading}>

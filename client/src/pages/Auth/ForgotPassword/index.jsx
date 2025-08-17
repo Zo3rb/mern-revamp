@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Form, Input, Button, Typography } from "antd";
 import { MailOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
+
+import { AppContext } from "../../../context/AppContext";
 
 const { Title } = Typography;
 
@@ -15,18 +18,28 @@ const validateEmail = (_, value) => {
 
 function ForgotPassword() {
   const [loading, setLoading] = useState(false);
-  const [serverError, setServerError] = useState("");
-  const [success, setSuccess] = useState("");
+  const { user } = useContext(AppContext);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.isVerified) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
-    setServerError("");
-    setSuccess("");
     try {
-      await axios.post("/api/users/forgot-password", values);
-      setSuccess("Password reset instructions have been sent to your email.");
+      const res = await axios.post("/api/users/forgot-password", values);
+      toast.success(
+        res.data?.message ||
+          "Password reset instructions have been sent to your email."
+      );
+      // Redirect to reset-password and pass email via state
+      navigate("/reset-password", { state: { email: values.email } });
     } catch (err) {
-      setServerError(
+      toast.error(
         err.response?.data?.message || "Request failed. Please try again."
       );
     }
@@ -55,12 +68,6 @@ function ForgotPassword() {
         >
           <Input prefix={<MailOutlined />} placeholder="Enter your email" />
         </Form.Item>
-        {serverError && (
-          <div style={{ color: "red", marginBottom: 16 }}>{serverError}</div>
-        )}
-        {success && (
-          <div style={{ color: "green", marginBottom: 16 }}>{success}</div>
-        )}
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={loading}>
             Send Reset Link

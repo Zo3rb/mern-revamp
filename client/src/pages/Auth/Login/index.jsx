@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Form, Input, Button, Typography } from "antd";
 import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
+
+import { AppContext } from "../../../context/AppContext";
 
 const { Title } = Typography;
 
@@ -23,14 +26,29 @@ const validatePassword = (_, value) => {
 function Login() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const { user, setUser } = useContext(AppContext);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.isVerified) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
     setServerError("");
     try {
       await axios.post("/api/users/login", values);
-      // Handle success (e.g., redirect, show notification)
+      const { data } = await axios.get("/api/users/me");
+      setUser(data.data); // Update context with user info
+      toast.success("Login successful!");
+      navigate("/");
     } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
       setServerError(
         err.response?.data?.message || "Login failed. Please try again."
       );
@@ -73,7 +91,6 @@ function Login() {
         {serverError && (
           <div style={{ color: "red", marginBottom: 16 }}>{serverError}</div>
         )}
-
         <span>
           <Link to="/forgot-password">Forgot password?</Link>
         </span>

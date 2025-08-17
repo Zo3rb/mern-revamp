@@ -1,20 +1,21 @@
-import React from "react";
-import { Card, Typography, Avatar, Button } from "antd";
+import React, { useContext, useEffect } from "react";
+import { Card, Typography, Avatar, Button, Space } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router";
+import { AppContext } from "../../../context/AppContext";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 function ProfileView() {
+  const { user } = useContext(AppContext);
+
   const navigate = useNavigate();
 
-  // Dummy user data for UI
-  const user = {
-    username: "Guest",
-    email: "guest@example.com",
-    avatar: "",
-    isVerified: false,
-  };
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   return (
     <Card
@@ -23,7 +24,7 @@ function ProfileView() {
     >
       <Avatar
         size={80}
-        src={user.avatar || null}
+        src={user.avatar ? user.avatar : null}
         icon={<UserOutlined />}
         style={{ marginBottom: 16 }}
       />
@@ -35,9 +36,22 @@ function ProfileView() {
           {user.isVerified ? "Verified" : "Not Verified"}
         </span>
       </Paragraph>
-      <Button type="primary" onClick={() => navigate("/profile/edit")}>
-        Edit Profile
-      </Button>
+      <Paragraph>
+        <Text strong>Member since:</Text>{" "}
+        {user.createdAt
+          ? new Date(user.createdAt).toLocaleDateString()
+          : "Unknown"}
+      </Paragraph>
+      <Space>
+        <Button type="primary" onClick={() => navigate("/profile/edit")}>
+          Edit Profile
+        </Button>
+        {!user.isVerified && (
+          <Button onClick={() => navigate("/verify-email")}>
+            Verify Your Account
+          </Button>
+        )}
+      </Space>
     </Card>
   );
 }
