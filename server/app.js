@@ -74,6 +74,31 @@ if (appConfig.NODE_ENV === "production") {
   });
 }
 
+// Error pages for frontend routes
+app.get("/400", (req, res) => {
+  res.status(400).json({
+    success: false,
+    message: "Bad request. Please check your input and try again.",
+    data: null,
+  });
+});
+
+app.get("/500", (req, res) => {
+  res.status(500).json({
+    success: false,
+    message: "Sorry, something went wrong on our end.",
+    data: null,
+  });
+});
+
+app.get("/404", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Sorry, the page you visited does not exist.",
+    data: null,
+  });
+});
+
 // Error Handlers
 app.use(notFound);
 app.use(errorHandler);
