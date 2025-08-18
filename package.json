@@ -6,7 +6,6 @@
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "install": "npm run install --prefix server && npm run install --prefix client",
     "build": "npm run build --prefix client",
     "start": "npm run start --prefix server"
   },
